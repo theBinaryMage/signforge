@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGFORGE — Sign in</title>
+<style>
+  :root{
+    --bg:#0a0b10;--panel:#111219;--panel2:#161823;--line:#23263a;
+    --ink:#e9ecf5;--mut:#8b90a8;--acc:#5eead4;--acc2:#a78bfa;
+    --glow:rgba(94,234,212,.18);--err:#fb7185;--ok:#34d399;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(900px 500px at 12% -8%, rgba(167,139,250,.12), transparent 60%),
+      radial-gradient(800px 500px at 100% 0%, rgba(94,234,212,.09), transparent 55%),
+      var(--bg);
+    color:var(--ink);font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    min-height:100%;display:grid;place-items:center;padding:30px;
+  }
+  .mono{font-family:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace}
+
+  .shell{width:100%;max-width:880px;display:grid;grid-template-columns:1fr 1fr;
+    background:var(--panel);border:1px solid var(--line);border-radius:22px;overflow:hidden;
+    box-shadow:0 40px 90px -40px rgba(0,0,0,.8)}
+  @media(max-width:720px){.shell{grid-template-columns:1fr;max-width:430px}.aside{display:none}}
+
+  /* left art panel */
+  .aside{position:relative;padding:34px 30px;
+    background:linear-gradient(160deg,rgba(94,234,212,.10),rgba(167,139,250,.10)),var(--panel2);
+    border-right:1px solid var(--line);overflow:hidden}
+  .logo{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;
+    background:linear-gradient(140deg,var(--acc),var(--acc2));color:#06121a;font-weight:800;font-size:22px;
+    box-shadow:0 12px 30px -10px var(--glow)}
+  .aside h1{font-size:20px;letter-spacing:3px;margin:20px 0 6px}
+  .aside p{color:var(--mut);font-size:13px;line-height:1.6;margin:0}
+  .artbits{position:absolute;inset:auto -10px -14px -10px;font-size:12px;line-height:1.5;
+    color:rgba(94,234,212,.22);white-space:pre;user-select:none;pointer-events:none}
+  .badge{display:inline-block;margin-top:22px;font-size:11px;color:var(--acc);
+    border:1px solid var(--line);padding:6px 11px;border-radius:999px;background:var(--panel)}
+
+  /* right form panel */
+  .pane{padding:34px 32px}
+  .tabs{display:flex;gap:6px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:12px;padding:5px;margin-bottom:24px}
+  .tab{flex:1;text-align:center;cursor:pointer;padding:9px;border-radius:8px;font-size:13px;
+    font-weight:600;color:var(--mut);transition:.15s}
+  .tab.active{background:linear-gradient(140deg,var(--acc),var(--acc2));color:#06121a}
+
+  label{display:block;font-size:11px;letter-spacing:1px;color:var(--mut);text-transform:uppercase;margin:0 0 6px}
+  .field{margin-bottom:15px}
+  input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:11px;
+    color:var(--ink);padding:12px 13px;font-size:14px;outline:none;transition:.15s}
+  input:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--glow)}
+
+  .submit{width:100%;cursor:pointer;border:none;border-radius:11px;padding:13px;margin-top:6px;
+    font-size:14px;font-weight:700;letter-spacing:.5px;color:#06121a;
+    background:linear-gradient(140deg,var(--acc),var(--acc2));transition:.15s}
+  .submit:hover{filter:brightness(1.08)}
+  .submit:disabled{opacity:.6;cursor:not-allowed}
+
+  .alt{margin-top:16px;text-align:center;font-size:12px;color:var(--mut)}
+  .alt a{color:var(--acc);cursor:pointer;text-decoration:none}
+
+  .msg{margin-top:14px;font-size:12.5px;border-radius:10px;padding:10px 12px;display:none;line-height:1.5}
+  .msg.err{display:block;background:rgba(251,113,133,.10);border:1px solid rgba(251,113,133,.4);color:var(--err)}
+  .msg.ok{display:block;background:rgba(52,211,153,.10);border:1px solid rgba(52,211,153,.4);color:var(--ok)}
+
+  .config{margin-top:20px;font-size:11px;color:var(--mut);border-top:1px dashed var(--line);padding-top:14px;line-height:1.6}
+  .config code{color:var(--acc2);background:var(--panel2);padding:1px 5px;border-radius:5px}
+  h2.formtitle{font-size:18px;margin:0 0 4px}
+  .sub{font-size:13px;color:var(--mut);margin:0 0 22px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="aside">
+    <div class="logo mono">◧</div>
+    <h1>SIGFORGE</h1>
+    <p>Forge one-of-one text signatures encoded in binary, morse, runes & more. Sign in to save and manage yours.</p>
+    <span class="badge mono">plain-text · email-safe</span>
+    <div class="artbits mono" id="artbits"></div>
+  </div>
+
+  <div class="pane">
+    <div class="tabs">
+      <div class="tab active" data-tab="login">Log in</div>
+      <div class="tab" data-tab="signup">Sign up</div>
+    </div>
+
+    <!-- LOGIN -->
+    <form id="loginForm">
+      <h2 class="formtitle">Welcome back</h2>
+      <p class="sub">Log in to your SIGFORGE workspace.</p>
+      <div class="field"><label>Email</label><input type="email" id="l_email" required autocomplete="email"></div>
+      <div class="field"><label>Password</label><input type="password" id="l_pass" required autocomplete="current-password"></div>
+      <button class="submit" type="submit">Log in →</button>
+      <div class="alt">No account? <a data-go="signup">Create one</a></div>
+    </form>
+
+    <!-- SIGNUP -->
+    <form id="signupForm" style="display:none">
+      <h2 class="formtitle">Create account</h2>
+      <p class="sub">Start forging signatures in seconds.</p>
+      <div class="field"><label>Full name</label><input type="text" id="s_name" required autocomplete="name"></div>
+      <div class="field"><label>Email</label><input type="email" id="s_email" required autocomplete="email"></div>
+      <div class="field"><label>Password</label><input type="password" id="s_pass" required minlength="6" autocomplete="new-password"></div>
+      <button class="submit" type="submit">Create account →</button>
+      <div class="alt">Already have one? <a data-go="login">Log in</a></div>
+    </form>
+
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+
+<!-- Supabase JS client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL  = "https://eksnjzsfhykwslvzjyjm.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrc25qenNmaHlrd3NsdnpqeWptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNTM1MzAsImV4cCI6MjA5NzYyOTUzMH0.mdJuASqpjKggXndVFzxlGNzrfHMPbOTAR0-dxiwnIu4";
+const REDIRECT_AFTER = "signature-generator.html";
+
+let sb=null;
+const configured = !SUPABASE_URL.includes("YOUR-PROJECT") && !SUPABASE_ANON.includes("YOUR_");
+if(configured && window.supabase){ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON); }
+
+/* ---- tab + view switching ---- */
+const tabs=document.querySelectorAll('.tab');
+const loginForm=document.getElementById('loginForm');
+const signupForm=document.getElementById('signupForm');
+function show(which){
+  tabs.forEach(t=>t.classList.toggle('active',t.dataset.tab===which));
+  loginForm.style.display = which==='login'?'block':'none';
+  signupForm.style.display= which==='signup'?'block':'none';
+  setMsg('');
+}
+tabs.forEach(t=>t.onclick=()=>show(t.dataset.tab));
+document.querySelectorAll('[data-go]').forEach(a=>a.onclick=()=>show(a.dataset.go));
+
+/* ---- messages ---- */
+const msgEl=document.getElementById('msg');
+function setMsg(text,kind){msgEl.className='msg'+(kind?(' '+kind):'');msgEl.textContent=text||'';if(!text)msgEl.style.display='none';}
+
+function guard(){
+  if(!sb){ setMsg('Backend not linked yet — add SUPABASE_URL + ANON key in the script to enable real auth.','err'); return false; }
+  return true;
+}
+
+/* ---- LOGIN ---- */
+loginForm.onsubmit=async e=>{
+  e.preventDefault(); if(!guard())return;
+  const btn=loginForm.querySelector('.submit'); btn.disabled=true; setMsg('Signing in…');
+  const {error}=await sb.auth.signInWithPassword({
+    email:document.getElementById('l_email').value.trim(),
+    password:document.getElementById('l_pass').value
+  });
+  btn.disabled=false;
+  if(error){setMsg(error.message,'err');return;}
+  setMsg('Success — redirecting…','ok'); location.href=REDIRECT_AFTER;
+};
+
+/* ---- SIGNUP ---- */
+signupForm.onsubmit=async e=>{
+  e.preventDefault(); if(!guard())return;
+  const btn=signupForm.querySelector('.submit'); btn.disabled=true; setMsg('Creating account…');
+  const {data,error}=await sb.auth.signUp({
+    email:document.getElementById('s_email').value.trim(),
+    password:document.getElementById('s_pass').value,
+    options:{data:{full_name:document.getElementById('s_name').value.trim()}}
+  });
+  btn.disabled=false;
+  if(error){setMsg(error.message,'err');return;}
+  if(data.session){ setMsg('Account created — redirecting…','ok'); location.href=REDIRECT_AFTER; }
+  else { setMsg('Account created. Check your email to confirm, then log in.','ok'); show('login'); }
+};
+
+/* already logged in? skip to app */
+(async()=>{ if(sb){ const {data}=await sb.auth.getSession(); if(data.session) location.href=REDIRECT_AFTER; } })();
+
+/* ---- decorative bit-rain in aside ---- */
+(function(){let s='';for(let i=0;i<12;i++){let row='';for(let j=0;j<40;j++)row+=Math.random()<.5?'0':'1';s+=row+'\n';}document.getElementById('artbits').textContent=s;})();
+</script>
+</body>
+</html>
